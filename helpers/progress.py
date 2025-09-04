@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 # @trojanzhex
 
-
-import os
 import time
 
-
 PRGRS = {}
+
 
 async def progress_func(
     current,
@@ -28,7 +26,7 @@ async def progress_func(
         elapsed_time = TimeFormatter(milliseconds=elapsed_time)
         estimated_total_time = TimeFormatter(milliseconds=estimated_total_time)
 
-        PRGRS[f"{message.chat.id}_{message.message_id}"] = {
+        PRGRS[f"{message.chat.id}_{message.id}"] = {   # ✅ updated for Pyrogram v2
             "current": humanbytes(current),
             "total": humanbytes(total),
             "speed": humanbytes(speed),
@@ -42,11 +40,11 @@ def humanbytes(size):
         return ""
     power = 2**10
     n = 0
-    Dic_powerN = {0: ' ', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
+    Dic_powerN = {0: "", 1: "K", 2: "M", 3: "G", 4: "T"}
     while size > power:
         size /= power
         n += 1
-    return str(round(size, 2)) + " " + Dic_powerN[n] + 'B'
+    return str(round(size, 2)) + " " + Dic_powerN[n] + "B"
 
 
 def TimeFormatter(milliseconds: int) -> str:
@@ -54,9 +52,11 @@ def TimeFormatter(milliseconds: int) -> str:
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)
-    tmp = ((str(days) + "d, ") if days else "") + \
-        ((str(hours) + "h, ") if hours else "") + \
-        ((str(minutes) + "m, ") if minutes else "") + \
-        ((str(seconds) + "s, ") if seconds else "") + \
-        ((str(milliseconds) + "ms, ") if milliseconds else "")
+    tmp = (
+        ((str(days) + "d, ") if days else "")
+        + ((str(hours) + "h, ") if hours else "")
+        + ((str(minutes) + "m, ") if minutes else "")
+        + ((str(seconds) + "s, ") if seconds else "")
+        + ((str(milliseconds) + "ms, ") if milliseconds else "")
+    )
     return tmp[:-2]
