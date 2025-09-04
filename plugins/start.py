@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # @trojanzhex
 
-
 from pyrogram import filters
 from pyrogram import Client as trojanz
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -24,11 +23,12 @@ async def start(client, message):
                 ],
                 [
                     InlineKeyboardButton(
-                        "⭕️ JOIN OUR CHANNEL ⭕️", url="https://t.me/TroJanzHEX")
+                        "⭕️ JOIN OUR CHANNEL ⭕️", url="https://t.me/TroJanzHEX"
+                    )
                 ]
             ]
         ),
-        reply_to_message_id=message.message_id
+        reply_to_message_id=message.id  # updated for Pyrogram v2
     )
 
 
@@ -45,11 +45,12 @@ async def help(client, message):
                 ],
                 [
                     InlineKeyboardButton(
-                        "⭕️ SUPPORT ⭕️", url="https://t.me/TroJanzSupport")
+                        "⭕️ SUPPORT ⭕️", url="https://t.me/TroJanzSupport"
+                    )
                 ]
             ]
         ),
-        reply_to_message_id=message.message_id
+        reply_to_message_id=message.id  # updated
     )
 
 
@@ -66,9 +67,10 @@ async def about(client, message):
                 ],
                 [
                     InlineKeyboardButton(
-                        "SOURCE CODE", url="https://github.com/TroJanzHEX/Streams-Extractor")
+                        "SOURCE CODE", url="https://github.com/TroJanzHEX/Streams-Extractor"
+                    )
                 ]
             ]
         ),
-        reply_to_message_id=message.message_id
+        reply_to_message_id=message.id  # updated
     )
