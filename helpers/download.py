@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # @trojanzhex
 
-
 import time
 import json
 
@@ -12,10 +11,11 @@ from helpers.tools import execute, clean_up
 
 DATA = {}
 
+
 async def download_file(client, message):
     media = message.reply_to_message
-    if media.empty:
-        await message.reply_text('Why did you delete that?? 😕', True)
+    if not media or media.empty:
+        await message.reply_text('Why did you delete that?? 😕', quote=True)
         return
 
     msg = await client.send_message(
@@ -24,10 +24,10 @@ async def download_file(client, message):
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton(text="Check Progress", callback_data="progress_msg")]
         ]),
-        reply_to_message_id=media.message_id
+        reply_to_message_id=media.id   # ✅ updated for Pyrogram v2
     )
-    filetype = media.document or media.video
 
+    filetype = media.document or media.video
     c_time = time.time()
 
     download_location = await client.download_media(
@@ -42,50 +42,53 @@ async def download_file(client, message):
 
     await msg.edit_text("Processing your file....")
 
-    output = await execute(f"ffprobe -hide_banner -show_streams -print_format json '{download_location}'")
+    output = await execute(
+        f"ffprobe -hide_banner -show_streams -print_format json '{download_location}'"
+    )
     
     if not output:
         await clean_up(download_location)
-        await msg.edit_text("Some Error Occured while Fetching Details...")
+        await msg.edit_text("Some Error Occurred while Fetching Details...")
         return
 
     details = json.loads(output[0])
     buttons = []
-    DATA[f"{message.chat.id}-{msg.message_id}"] = {}
-    for stream in details["streams"]:
-        mapping = stream["index"]
-        stream_name = stream["codec_name"]
-        stream_type = stream["codec_type"]
-        if stream_type in ("audio", "subtitle"):
-            pass
-        else:
+
+    # Use chat.id-message.id as key for storing stream data
+    key = f"{message.chat.id}-{msg.id}"
+    DATA[key] = {}
+
+    for stream in details.get("streams", []):
+        mapping = stream.get("index")
+        stream_name = stream.get("codec_name")
+        stream_type = stream.get("codec_type")
+
+        if stream_type not in ("audio", "subtitle"):
             continue
-        try: 
-            lang = stream["tags"]["language"]
-        except:
-            lang = mapping
-        
-        DATA[f"{message.chat.id}-{msg.message_id}"][int(mapping)] = {
-            "map" : mapping,
-            "name" : stream_name,
-            "type" : stream_type,
-            "lang" : lang,
-            "location" : download_location
+
+        lang = stream.get("tags", {}).get("language", mapping)
+
+        DATA[key][int(mapping)] = {
+            "map": mapping,
+            "name": stream_name,
+            "type": stream_type,
+            "lang": lang,
+            "location": download_location
         }
+
         buttons.append([
             InlineKeyboardButton(
-                f"{stream_type.upper()} - {str(lang).upper()}", f"{stream_type}_{mapping}_{message.chat.id}-{msg.message_id}"
+                f"{stream_type.upper()} - {str(lang).upper()}",
+                callback_data=f"{stream_type}_{mapping}_{key}"
             )
         ])
 
+    # Cancel button (uses last mapping found just like original)
     buttons.append([
-        InlineKeyboardButton("CANCEL",f"cancel_{mapping}_{message.chat.id}-{msg.message_id}")
+        InlineKeyboardButton("CANCEL", callback_data=f"cancel_{mapping}_{key}")
     ])    
 
     await msg.edit_text(
         "**Select the Stream to be Extracted...**",
         reply_markup=InlineKeyboardMarkup(buttons)
-        )
-
-
-
+    )
