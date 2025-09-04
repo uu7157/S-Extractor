@@ -1,4 +1,4 @@
-pyrogram==1.4.16
-tgcrypto==1.2.2
-hachoir==3.3.0
+pyrogram
+tgcrypto
+hachoir
 ffmpeg
